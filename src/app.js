@@ -46,10 +46,16 @@ const user= await User.findOne({email})
 
   if(user){
      isPasswordCorrect= await byCrypt.compare(password,user?.password);
-     const jwtToken=await jwt.sign({_id:user._id},"mySecretKey");
-     console.log("jwtToken",jwtToken)
-    console.log("isPasswordCorrect",isPasswordCorrect)
-    res.cookie("token",jwtToken)
+     if(isPasswordCorrect){
+        const jwtToken=await jwt.sign({_id:user._id},"mySecretKey");
+        console.log("jwtToken",jwtToken)
+       console.log("isPasswordCorrect",isPasswordCorrect)
+       res.cookie("token",jwtToken)
+     }else{
+        res.send("password incorrect")
+        return
+     }
+   
   }
 
 
@@ -93,7 +99,7 @@ app.listen(3000,()=>{
 }).catch(()=>{
     console.log("database connect failed")
 })
-app.use(express.json())
+
 
 
 
