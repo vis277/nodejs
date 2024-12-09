@@ -1,8 +1,12 @@
 const express =require("express");
 const expressJson=require("express-json")
 const connectDb=require("./config/database")
+const cookieParser=require("cookie-parser")
+const jwt=require("jsonwebtoken")
 const app=express();
+
 app.use(express.json())
+app.use(cookieParser())
 const User=require("./models/user")
 const byCrypt=require("bcrypt")
 
@@ -36,19 +40,23 @@ app.post("/login",async(req,res)=>{
 
 const {email,password}=req.body
 
-console.log("email",email)
 const user= await User.findOne({email})
-  console.log("user",user)
+  console.log("user ln 44",user)
   let isPasswordCorrect=false
 
   if(user){
      isPasswordCorrect= await byCrypt.compare(password,user?.password);
+     const jwtToken=await jwt.sign({_id:user._id},"mySecretKey");
+     console.log("jwtToken",jwtToken)
     console.log("isPasswordCorrect",isPasswordCorrect)
+    res.cookie("token",jwtToken)
   }
+
 
 
 try{
    if(isPasswordCorrect){
+  
     res.send("login successful",)
    }else{
     res.send("userDesnot exist")
@@ -59,6 +67,22 @@ try{
 })
 
 
+app.get("/profile",async(req,res)=>{
+const {token}=req.cookies
+if(!token){
+    throw new Error("token not present")
+}
+console.log("toke",token);
+const userId= await jwt.verify(token,"mySecretKey");
+console.log("userID",userId._id)
+const userLoggedIn= await User.findById({_id:userId._id})
+console.log("userLoggedIn",userLoggedIn)
+    try{
+res.send(userLoggedIn)
+    }catch(err){
+res.send("invalid token")
+    }
+})
 connectDb().then(()=>{
     console.log("database connect successful")
     
