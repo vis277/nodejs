@@ -70,7 +70,8 @@ try{
 app.get("/profile",async(req,res)=>{
 const {token}=req.cookies
 if(!token){
-    throw new Error("token not present")
+   res.send("token not present")
+   return
 }
 console.log("toke",token);
 const userId= await jwt.verify(token,"mySecretKey");
